@@ -56,29 +56,22 @@ export const checkDuration = async (filePath: string): Promise<boolean> => {
     const execPromise = promisify(exec);
 
     try {
-        const { stderr } = await execPromise(`ffmpeg -i "${filePath}"`);
+        // Use ffprobe instead of ffmpeg for getting duration
+        // The -v quiet suppresses unnecessary output
+        // -show_entries format=duration gets just the duration
+        // -of csv=p=0 outputs just the value without labels
+        const { stdout } = await execPromise(`ffprobe -v quiet -show_entries format=duration -of csv=p=0 "${filePath}"`);
 
-        // Look for Duration in the output
-        const durationLine = stderr.split('\n').find(line => line.includes('Duration'));
+        // Parse the duration (should be just a number in seconds)
+        const duration = parseFloat(stdout.trim());
 
-        if (!durationLine) {
+        if (isNaN(duration)) {
+            console.error('Could not parse duration from ffprobe output');
             return false;
         }
 
-        // Extract the time part
-        const durationMatch = durationLine.match(/Duration: (\d{2}):(\d{2}):(\d{2}\.\d{2})/);
-
-        if (!durationMatch) {
-            return false;
-        }
-
-        const hours = parseFloat(durationMatch[1]);
-        const minutes = parseFloat(durationMatch[2]);
-        const seconds = parseFloat(durationMatch[3]);
-
-        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
-
-        return totalSeconds <= 60;
+        console.log(`File duration: ${duration} seconds`);
+        return duration <= 60;
     } catch (error) {
         console.error('Error checking duration:', error);
         return false;

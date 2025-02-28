@@ -58,7 +58,7 @@ app.post("/transcribe",
         const isValidDuration = await checkDuration(filePath);
         if (!isValidDuration) {
             cleanupFile(filePath);
-            res.status(400).json({ error: 'File duration exceeds 1 minute' });
+            res.status(400).json({ error: 'Failed to get duration, either longer than 1 min or ffmpeg not working.' });
             return;
         }
 
