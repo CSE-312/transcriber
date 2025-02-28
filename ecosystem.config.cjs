@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "trans",
       script: "src/index.ts", // Entry point of your application
-      interpreter: "bun",
+      interpreter: "/home/nico/.bun/bin/bun",
       instances: "max",
       exec_mode: "cluster",
       env: {
