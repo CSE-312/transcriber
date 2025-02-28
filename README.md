@@ -10,6 +10,52 @@ A TypeScript implementation of an audio transcription service using AWS Transcri
 - AWS S3 for file storage
 - AWS Transcribe for audio-to-text conversion
 
+## API Endpoints
+
+### Transcribe Audio
+
+```
+POST /transcribe
+```
+
+**Headers:**
+
+- Authorization: Bearer --get-token-from-instructor--
+
+**Body:**
+
+- Form data with a field named "file" containing an MP3 file (max 1 minute duration)
+
+**Response:**
+
+```json
+{
+  "unique_id": "generated-uuid"
+}
+```
+
+You will be given a unique_id that you can use to get the transcription after it completes. The transcription is done asynchronously, therefore you will need to use the next route to see if it's ready or not.
+
+### Get Transcription
+
+```
+GET /transcriptions/:id
+```
+
+**Headers:**
+
+- Authorization: Bearer --get-token-from-instructor--
+
+**Response:**
+
+```json
+{
+  "s3_url": "https://xxx.s3.amazonaws.com/transcriptions/your-id.srt"
+}
+```
+
+This will return the SRT file containing the transcription of the audio file. If the file is not ready, or the transcription request does not exist, it will return an http response with a status code of 420.
+
 ## Prerequisites
 
 - Node.js or Bun runtime
@@ -46,48 +92,6 @@ bun run src/index.ts
 ```
 
 The server will start on port 5000.
-
-## API Endpoints
-
-### Transcribe Audio
-
-```
-POST /transcribe
-```
-
-**Headers:**
-
-- Authorization: Bearer sk_transcribe_312_f8a92j3012fadsi321
-
-**Body:**
-
-- Form data with a file field containing an MP3 file (max 1 minute duration)
-
-**Response:**
-
-```json
-{
-  "unique_id": "generated-uuid"
-}
-```
-
-### Get Transcription
-
-```
-GET /transcriptions/:id
-```
-
-**Headers:**
-
-- Authorization: Bearer sk_transcribe_312_f8a92j3012fadsi321
-
-**Response:**
-
-```json
-{
-  "s3_url": "https://312-transcriptions.s3.amazonaws.com/transcriptions/your-id.srt"
-}
-```
 
 ## License
 
