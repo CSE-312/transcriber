@@ -241,8 +241,5 @@ app.use(errorHandler);
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    logger.info(`Server is running on port ${PORT}`, {
-        nodeEnv: process.env.NODE_ENV || 'development',
-        region: AWS_REGION
-    });
+    logger.info(`Server is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
 });

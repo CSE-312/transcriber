@@ -67,7 +67,7 @@ This will return the SRT file containing the transcription of the audio file. If
 To install dependencies:
 
 ```bash
-bun install
+npm install or bun install
 ```
 
 ## Configuration

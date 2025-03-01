@@ -2,12 +2,19 @@
   "name": "transcriber-ts",
   "module": "src/index.ts",
   "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "start": "bun src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node --enable-source-maps dist/index.js",
+    "deploy": "npm run build && pm2 start ecosystem.config.cjs --env production",
+    "deploy:dev": "pm2 start ecosystem.config.cjs",
+    "stop": "pm2 stop ecosystem.config.cjs",
+    "reload": "pm2 reload ecosystem.config.cjs"
   },
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.1",
+    "@types/node": "^20.11.24"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
