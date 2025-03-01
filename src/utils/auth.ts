@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import logger from './logger';
+import logger from './logger.js';
 
 // API token for authentication
 const API_TOKEN = "sk_transcribe_312_f8a92j3012fadsi321";

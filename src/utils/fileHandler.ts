@@ -5,7 +5,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import multer from 'multer';
 import type { Request } from 'express';
-import logger from './logger';
+import logger from './logger.js';
 
 // Constants
 const MAX_FILE_SIZE = 300 * 1024 * 1024; // 300MB

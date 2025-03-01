@@ -14,11 +14,11 @@ import {
     StartTranscriptionJobCommand,
     type StartTranscriptionJobCommandInput
 } from "@aws-sdk/client-transcribe";
-import { requireAuth } from "./utils/auth";
-import { upload, checkDuration, cleanupFile } from "./utils/fileHandler";
-import logger from "./utils/logger";
-import { errorHandler } from "./middleware/errorHandler";
-import { apiLimiter } from "./middleware/rateLimiter";
+import { requireAuth } from "./utils/auth.js";
+import { upload, checkDuration, cleanupFile } from "./utils/fileHandler.js";
+import logger from "./utils/logger.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import { apiLimiter } from "./middleware/rateLimiter.js";
 
 // Load environment variables
 dotenv.config();
