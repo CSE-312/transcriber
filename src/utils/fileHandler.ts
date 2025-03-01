@@ -5,30 +5,48 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import multer from 'multer';
 import type { Request } from 'express';
+import logger from './logger';
 
-// Create a temporary directory for file uploads
+// Constants
+const MAX_FILE_SIZE = 300 * 1024 * 1024; // 300MB
+const MAX_DURATION = 60; // 60 seconds
 const UPLOAD_DIR = path.join(os.tmpdir(), 'transcribe_uploads');
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+const ALLOWED_EXTENSIONS = ['mp3'] as const;
+type AllowedExtension = typeof ALLOWED_EXTENSIONS[number];
 
-// Allowed file extensions
-const ALLOWED_EXTENSIONS = ['mp3'];
+// Create upload directory
+try {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    logger.info(`Created upload directory at ${UPLOAD_DIR}`);
+} catch (error) {
+    logger.error('Failed to create upload directory:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        path: UPLOAD_DIR
+    });
+    throw error;
+}
 
 // Configure multer storage
 const storage = multer.diskStorage({
     destination: (_req, _file, cb) => {
+        logger.debug('Storing file in upload directory', { path: UPLOAD_DIR });
         cb(null, UPLOAD_DIR);
     },
     filename: (_req, file, cb) => {
+        logger.debug('Using original filename for upload', { filename: file.originalname });
         cb(null, file.originalname);
     }
 });
 
 // File filter for multer
-const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    if (allowedFile(file.originalname)) {
+const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback): void => {
+    const isValid = allowedFile(file.originalname);
+    if (isValid) {
+        logger.debug('File type accepted', { filename: file.originalname });
         cb(null, true);
     } else {
-        cb(new Error('Invalid file type'));
+        logger.warn('Invalid file type rejected', { filename: file.originalname });
+        cb(new Error('Invalid file type - only MP3 files are allowed'));
     }
 };
 
@@ -37,7 +55,7 @@ export const upload = multer({
     storage,
     fileFilter,
     limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB max file size
+        fileSize: MAX_FILE_SIZE
     }
 });
 
@@ -46,35 +64,50 @@ export const upload = multer({
  */
 export const allowedFile = (filename: string): boolean => {
     const extension = filename.split('.').pop()?.toLowerCase();
-    return !!extension && ALLOWED_EXTENSIONS.includes(extension);
+    const isAllowed = !!extension && ALLOWED_EXTENSIONS.includes(extension as AllowedExtension);
+
+    logger.debug('Checking file extension', {
+        filename,
+        extension: extension || 'none',
+        isAllowed
+    });
+
+    return isAllowed;
 };
 
 /**
- * Check if the audio file duration is within limits (60 seconds)
+ * Check if the audio file duration is within limits
  */
-export const checkDuration = async (filePath: string): Promise<boolean> => {
+export const checkDuration = async (filePath: string): Promise<void> => {
     const execPromise = promisify(exec);
+    logger.debug('Checking audio duration', { filePath });
 
     try {
-        // Use ffprobe instead of ffmpeg for getting duration
-        // The -v quiet suppresses unnecessary output
-        // -show_entries format=duration gets just the duration
-        // -of csv=p=0 outputs just the value without labels
         const { stdout } = await execPromise(`ffprobe -v quiet -show_entries format=duration -of csv=p=0 "${filePath}"`);
-
-        // Parse the duration (should be just a number in seconds)
         const duration = parseFloat(stdout.trim());
 
         if (isNaN(duration)) {
-            console.error('Could not parse duration from ffprobe output');
-            return false;
+            logger.error('Could not parse duration from ffprobe output', { filePath, stdout });
+            throw new Error('Could not determine audio file duration');
         }
 
-        console.log(`File duration: ${duration} seconds`);
-        return duration <= 60;
+        const isWithinLimit = duration <= MAX_DURATION;
+        logger.info('Audio duration check complete', {
+            filePath,
+            duration: `${duration} seconds`,
+            isWithinLimit,
+            limit: `${MAX_DURATION} seconds`
+        });
+
+        if (!isWithinLimit) {
+            throw new Error(`Audio file duration exceeds the ${MAX_DURATION} second limit`);
+        }
     } catch (error) {
-        console.error('Error checking duration:', error);
-        return false;
+        logger.error('Error checking audio duration:', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            filePath
+        });
+        throw error;
     }
 };
 
@@ -82,7 +115,18 @@ export const checkDuration = async (filePath: string): Promise<boolean> => {
  * Clean up a file after processing
  */
 export const cleanupFile = (filePath: string): void => {
-    if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+    try {
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            logger.debug('Successfully cleaned up file', { filePath });
+        } else {
+            logger.debug('No file to clean up', { filePath });
+        }
+    } catch (error) {
+        logger.error('Error cleaning up file:', {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            filePath
+        });
+        // We don't throw here as this is cleanup code
     }
 }; 
