@@ -78,12 +78,16 @@ app.post("/transcribe",
 
         logger.info('Starting transcription request', {
             requestId,
+            user: req.user,
             contentType: req.get('Content-Type'),
             fileSize: req.get('Content-Length')
         });
 
         if (!req.file) {
-            logger.warn('No file provided in request', { requestId });
+            logger.warn('No file provided in request', {
+                requestId,
+                user: req.user
+            });
             res.status(400).json({ error: 'No file provided' });
             return;
         }
@@ -91,6 +95,7 @@ app.post("/transcribe",
         const filePath = req.file.path;
         logger.debug('File uploaded successfully', {
             requestId,
+            user: req.user,
             filename: req.file.originalname,
             path: filePath,
             size: req.file.size
@@ -114,6 +119,7 @@ app.post("/transcribe",
 
             logger.debug('Uploading file to S3', {
                 requestId,
+                user: req.user,
                 bucket: S3_BUCKET,
                 key: s3Key
             });
@@ -121,6 +127,7 @@ app.post("/transcribe",
             await s3Client.send(new PutObjectCommand(putObjectParams));
             logger.info('File uploaded to S3 successfully', {
                 requestId,
+                user: req.user,
                 bucket: S3_BUCKET,
                 key: s3Key
             });
@@ -147,12 +154,14 @@ app.post("/transcribe",
 
             logger.debug('Starting transcription job', {
                 requestId,
+                user: req.user,
                 jobName: transcriptionParams.TranscriptionJobName
             });
 
             await transcribeClient.send(new StartTranscriptionJobCommand(transcriptionParams));
             logger.info('Transcription job started successfully', {
                 requestId,
+                user: req.user,
                 jobName: transcriptionParams.TranscriptionJobName,
                 uniqueId
             });
@@ -161,6 +170,7 @@ app.post("/transcribe",
             const processingTime = Date.now() - startTime;
             logger.info('Transcription request completed successfully', {
                 requestId,
+                user: req.user,
                 processingTimeMs: processingTime,
                 uniqueId
             });
@@ -172,12 +182,20 @@ app.post("/transcribe",
             // Handle known error cases with appropriate status codes
             if (error instanceof Error) {
                 if (error.message.includes('duration exceeds')) {
-                    logger.warn('File duration too long', { requestId, error: error.message });
+                    logger.warn('File duration too long', {
+                        requestId,
+                        user: req.user,
+                        error: error.message
+                    });
                     res.status(400).json({ error: error.message });
                     return;
                 }
                 if (error.message.includes('Could not determine audio file duration')) {
-                    logger.warn('Could not process audio file', { requestId, error: error.message });
+                    logger.warn('Could not process audio file', {
+                        requestId,
+                        user: req.user,
+                        error: error.message
+                    });
                     res.status(400).json({ error: error.message });
                     return;
                 }
@@ -198,6 +216,7 @@ app.get('/transcriptions/:id',
 
         logger.debug('Checking transcription status', {
             requestId,
+            user: req.user,
             uniqueId
         });
 
@@ -211,6 +230,7 @@ app.get('/transcriptions/:id',
             await s3Client.send(new HeadObjectCommand(headObjectParams));
             logger.debug('Transcription file found in S3', {
                 requestId,
+                user: req.user,
                 bucket: S3_BUCKET,
                 key: s3Key
             });
@@ -219,6 +239,7 @@ app.get('/transcriptions/:id',
             const s3Url = `https://${S3_BUCKET}.s3.amazonaws.com/${s3Key}`;
             logger.info('Transcription status request completed', {
                 requestId,
+                user: req.user,
                 uniqueId,
                 status: 'completed'
             });
@@ -227,6 +248,7 @@ app.get('/transcriptions/:id',
         } catch (error) {
             logger.debug('Transcription file not found', {
                 requestId,
+                user: req.user,
                 error: error instanceof Error ? error.message : 'Unknown error',
                 uniqueId
             });
