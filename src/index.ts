@@ -23,8 +23,10 @@ import { apiLimiter } from "./middleware/rateLimiter.js";
 // Load environment variables
 dotenv.config();
 
-// Initialize Express app
+
 const app = express();
+
+app.set('trust proxy', true);
 
 // Add request ID to each request
 app.use((req: Request, _res: Response, next: NextFunction) => {
