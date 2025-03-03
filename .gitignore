@@ -176,3 +176,4 @@ dist
 
 # Generated tokens
 tokens.json
+logs/*.log
