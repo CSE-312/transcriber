@@ -1,8 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import logger from './logger.js';
 import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 
 
@@ -13,6 +11,9 @@ const TOKEN_TO_EMAIL = Object.entries(TOKEN_MAP).reduce((acc, [email, token]) =>
     acc[token] = email;
     return acc;
 }, {} as { [key: string]: string });
+
+// sanity check for how many tokens are in the file
+console.log(`Number of tokens in the file: ${Object.keys(TOKEN_MAP).length}`);
 
 /**
  * Middleware to require authentication for routes
