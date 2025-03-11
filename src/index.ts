@@ -266,6 +266,7 @@ app.post("/test-error", () => {
 });
 
 if (process.env.SENTRY_DSN) {
+    console.log("Setting up Sentry");
     Sentry.setupExpressErrorHandler(app);
 }
 
