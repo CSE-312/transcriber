@@ -19,6 +19,8 @@ import { upload, checkDuration, cleanupFile } from "./utils/fileHandler.js";
 import logger from "./utils/logger.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { apiLimiter } from "./middleware/rateLimiter.js";
+import "./instrument.js";
+import * as Sentry from "@sentry/node";
 
 // Load environment variables
 dotenv.config();
@@ -258,6 +260,14 @@ app.get('/transcriptions/:id',
             res.status(420).json({ error: 'Transcription not found' });
         }
     });
+
+app.post("/test-error", () => {
+    throw new Error("Test error");
+});
+
+if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler(app);
+}
 
 // Error handler middleware (must be last)
 app.use(errorHandler);
