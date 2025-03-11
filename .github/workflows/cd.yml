@@ -1,4 +1,4 @@
-name: Continuous Deployment
+name: Sourcemaps for Sentry
 
 on:
   push:
