@@ -1,0 +1,22 @@
+name: Deploy to Production
+on:
+    workflow_dispatch:
+
+jobs:
+    deploy:
+        name: Deploy to Production
+        runs-on: ubuntu-latest
+        steps:
+            - name: executing remote ssh commands using ssh key
+              uses: appleboy/ssh-action@master
+              with:
+                  host: ${{ secrets.VPS_HOST }}
+                  username: nico
+                  password: ${{ secrets.VPS_PASSWORD }}
+                  port: 22
+                  script: |
+                        export PATH="/home/nico/.nvm/versions/node/v23.9.0/bin:/home/nico/.bun/bin:$PATH"
+                        cd trans
+                        git fetch && git clean -fd && git reset --hard HEAD && git pull --rebase
+                        bun install
+                        pm2 restart transcriber

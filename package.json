@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc --build",
-    "start": "node --enable-source-maps dist/index.js"
+    "start": "node --enable-source-maps dist/index.js",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org ub-cse --project 312-transcriber dist && sentry-cli sourcemaps upload --org ub-cse --project 312-transcriber dist"
   },
   "type": "module",
   "devDependencies": {
@@ -19,6 +20,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.758.0",
     "@aws-sdk/client-transcribe": "^3.758.0",
+    "@sentry/cli": "^2.42.2",
     "@types/express": "^5.0.0",
     "@types/multer": "^1.4.12",
     "@types/uuid": "^10.0.0",

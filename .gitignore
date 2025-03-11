@@ -177,3 +177,5 @@ dist
 # Generated tokens
 tokens.json
 *.log
+# Sentry Config File
+.sentryclirc
