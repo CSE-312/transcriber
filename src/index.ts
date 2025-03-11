@@ -1,6 +1,9 @@
+import dotenv from "dotenv";
+// Load environment variables
+dotenv.config();
+
 import express, { type Request, type Response, type NextFunction } from "express";
 import { v4 as uuidv4 } from "uuid";
-import dotenv from "dotenv";
 import fs from "fs";
 import {
     S3Client,
@@ -21,10 +24,6 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import { apiLimiter } from "./middleware/rateLimiter.js";
 import "./instrument.js";
 import * as Sentry from "@sentry/node";
-
-// Load environment variables
-dotenv.config();
-
 
 const app = express();
 
