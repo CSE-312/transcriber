@@ -268,6 +268,11 @@ app.get('/transcriptions/:id',
                 uniqueId,
                 status: 'completed'
             });
+            await trackEvent("transcription_completed", {
+                user: req.user,
+                requestId,
+                uniqueId
+            });
 
             res.json({ s3_url: s3Url });
         } catch (error) {
