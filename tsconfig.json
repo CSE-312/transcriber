@@ -26,6 +26,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "target": "ES2017",
+    "allowSyntheticDefaultImports": true,
     "inlineSources": true,
 
     // Set `sourceRoot` to  "/" to strip the build path prefix

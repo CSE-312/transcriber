@@ -1,7 +1,9 @@
 import umami from '@umami/node';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const enabled = !!process.env.UMAMI_WEBSITE_ID;
-console.log("Umami enabled: ", enabled);
+console.log("Umami enabled:", enabled);
 
 umami.init({
     websiteId: process.env.UMAMI_WEBSITE_ID,
