@@ -1,6 +1,7 @@
 import umami from '@umami/node';
 
 const enabled = !!process.env.UMAMI_WEBSITE_ID;
+console.log("Umami enabled: ", enabled);
 
 umami.init({
     websiteId: process.env.UMAMI_WEBSITE_ID,
