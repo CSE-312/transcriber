@@ -15,6 +15,7 @@ import {
     type StartTranscriptionJobCommandInput
 } from "@aws-sdk/client-transcribe";
 import { requireAuth } from "./utils/auth.js";
+import trackEvent from "./utils/umami.js";
 import { upload, checkDuration, cleanupFile } from "./utils/fileHandler.js";
 import logger from "./utils/logger.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -179,9 +180,23 @@ app.post("/transcribe",
                 uniqueId
             });
 
+            await trackEvent("transcription_created", {
+                user: req.user,
+                requestId,
+                processingTimeMs: processingTime,
+                uniqueId
+            });
+
             res.json({ unique_id: uniqueId });
         } catch (error) {
             cleanupFile(filePath);
+
+            // Add tracking for failures
+            await trackEvent("transcription_failed", {
+                user: req.user,
+                requestId,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
 
             // Handle known error cases with appropriate status codes
             if (error instanceof Error) {
@@ -217,6 +232,12 @@ app.get('/transcriptions/:id',
         const requestId = req.headers['x-request-id'];
         const uniqueId = req.params.id;
         const s3Key = `transcriptions/${uniqueId}.vtt`;
+
+        await trackEvent("transcription_requested", {
+            user: req.user,
+            requestId,
+            uniqueId
+        });
 
         logger.debug('Checking transcription status', {
             requestId,
@@ -254,6 +275,12 @@ app.get('/transcriptions/:id',
                 requestId,
                 user: req.user,
                 error: error instanceof Error ? error.message : 'Unknown error',
+                uniqueId
+            });
+
+            await trackEvent("transcription_not_ready", {
+                user: req.user,
+                requestId,
                 uniqueId
             });
 
