@@ -18,5 +18,5 @@ jobs:
                         export PATH="/home/nico/.nvm/versions/node/v23.9.0/bin:/home/nico/.bun/bin:$PATH"
                         cd trans
                         git fetch && git clean -fd && git reset --hard HEAD && git pull --rebase
-                        bun install
+                        bun install && bun run build
                         pm2 restart transcriber
