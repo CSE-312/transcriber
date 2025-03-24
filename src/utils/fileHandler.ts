@@ -6,6 +6,7 @@ import { promisify } from 'util';
 import multer from 'multer';
 import type { Request } from 'express';
 import logger from './logger.js';
+import { FileValidationError } from './errors.js';
 
 // Constants
 const MAX_FILE_SIZE = 300 * 1024 * 1024; // 300MB
@@ -46,7 +47,7 @@ const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFil
         cb(null, true);
     } else {
         logger.warn('Invalid file type rejected', { filename: file.originalname });
-        cb(new Error('Invalid file type - only MP3 files are allowed'));
+        cb(new FileValidationError('Invalid file type - only MP3 files are allowed'));
     }
 };
 
@@ -88,7 +89,7 @@ export const checkDuration = async (filePath: string): Promise<void> => {
 
         if (isNaN(duration)) {
             logger.error('Could not parse duration from ffprobe output', { filePath, stdout });
-            throw new Error('Could not determine audio file duration');
+            throw new FileValidationError('Could not determine audio file duration');
         }
 
         const isWithinLimit = duration <= MAX_DURATION;
@@ -100,14 +101,17 @@ export const checkDuration = async (filePath: string): Promise<void> => {
         });
 
         if (!isWithinLimit) {
-            throw new Error(`Audio file duration exceeds the ${MAX_DURATION} second limit`);
+            throw new FileValidationError(`Audio file duration exceeds the ${MAX_DURATION} second limit`);
         }
     } catch (error) {
+        if (error instanceof FileValidationError) {
+            throw error;
+        }
         logger.error('Error checking audio duration:', {
             error: error instanceof Error ? error.message : 'Unknown error',
             filePath
         });
-        throw error;
+        throw new FileValidationError('Failed to process audio file');
     }
 };
 

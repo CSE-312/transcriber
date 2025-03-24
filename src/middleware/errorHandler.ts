@@ -1,4 +1,5 @@
-import type { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { ValidationError } from '../utils/errors.js';
 import logger from '../utils/logger.js';
 
 // Global error handler middleware for unhandled errors
@@ -10,6 +11,22 @@ export const errorHandler = (
     next: NextFunction
 ): void => {
     const requestId = req.headers['x-request-id'] || 'unknown';
+
+    // Log the error
+    logger.error('Error occurred:', {
+        error: err.message,
+        stack: err.stack,
+        path: req.path,
+        method: req.method
+    });
+
+    // Handle validation errors
+    if (err instanceof ValidationError) {
+        res.status(400).json({
+            error: err.message
+        });
+        return;
+    }
 
     // Handle multer errors
     if (err.name === 'MulterError') {
