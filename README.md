@@ -24,7 +24,7 @@ POST /transcribe
 
 **Body:**
 
-- Form data with a field named "file" containing an MP3 file (max 1 minute duration)
+- Form data with a field named "file" containing an MP3 file (max 1 minute duration). Ensure you give this file part a name, and a content type.
 
 **Response:**
 
