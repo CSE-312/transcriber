@@ -48,9 +48,14 @@ GET /transcriptions/:id
 
 **Response:**
 
-Sample response https://312-transcriptions.s3.us-east-1.amazonaws.com/transcriptions/ac23b8cb-3660-47fe-b7e2-01436fcd7d84.vtt
+```
+{ s3_url: string }
+```
 
-This will return the VTT file containing the transcription of the audio file. If the file is not ready, or the transcription request does not exist, it will return an http response with a status code of 420.
+example s3_url: https://312-transcriptions.s3.us-east-1.amazonaws.com/transcriptions/ac23b8cb-3660-47fe-b7e2-01436fcd7d84.vtt
+
+
+This will return a JSON object with a key of s3_url with a value of the URL containing the VTT file containing the transcription of the audio file. If the file is not ready, or the transcription request does not exist, it will return an http response with a status code of 420.
 
 ## Prerequisites
 
